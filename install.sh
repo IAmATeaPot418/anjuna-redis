@@ -26,7 +26,7 @@ openssl req \
 openssl genrsa -out server.key 2048
 openssl req \
     -new -sha256 \
-    -key redis.key \
+    -key server.key \
     -subj '/O=Redislabs/CN=Production Redis' | \
     openssl x509 \
         -req -sha256 \
@@ -36,7 +36,7 @@ openssl req \
         -CAcreateserial \
         -days 365 \
         -out server.crt
-openssl dhparam -out redis.dh 2048
+openssl dhparam -out server.dh 2048
 anjuna-prov-seal --public-key redis-server.provision.key server.key
 anjuna-sgxrun redis-server \
 --tls-port 6379 --port 0 \
@@ -44,3 +44,7 @@ anjuna-sgxrun redis-server \
 --tls-key-file server.key.sealed \
 --tls-ca-cert-file ca.crt \
 --tls-auth-clients no
+echo "127.0.0.1 Production Redis" | sudo tee -a /etc/hosts
+
+#Notes:
+# To use a Redis.conf file do not use a trusted input and enter the key as sealed.
